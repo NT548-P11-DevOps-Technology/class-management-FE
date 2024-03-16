@@ -5,6 +5,7 @@ import { Container, Paper, Button } from '@mui/material';
 
 export default function Student() {
     const paperStyle={padding:'50px 20px', width:600, margin:"20px auto"}
+    const[id,setID]=React.useState('')
     const[name,setName]=React.useState('')
     const[address,setAddress]=React.useState('')
     const[students,setStudents]=React.useState([])
@@ -51,6 +52,28 @@ export default function Student() {
             />
             <Button variant="contained" color="secondary" onClick={handleClick}>
                 Submit
+            </Button>
+            </Box>
+        </Paper>
+        <Paper elevation={3} style={paperStyle}>
+            <h1 style={{color:"brown"}}><u>Update Or Delete by ID</u></h1>
+            <Box
+            component="form"
+            sx={{
+                '& > :not(style)': { m: 1},
+            }}
+            noValidate
+            autoComplete="off"
+            >
+            <TextField id="outlined-basic" label="Student ID" variant="outlined" fullWidth
+            value={id}
+            onChange={(e)=>setID(e.target.value)}
+            />
+            <Button variant="outlined" color="primary" onClick={handleClick}>
+                Update
+            </Button>
+            <Button variant="contained" color="primary" onClick={handleClick}>
+                Delete
             </Button>
             </Box>
         </Paper>

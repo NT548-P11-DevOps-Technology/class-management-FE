@@ -30,6 +30,33 @@ export default function Student() {
             setStudents(result)
         })
     },[])
+
+    const handleUpdate=(id)=>{
+        if (!id || id.trim() === "") {
+            console.log("Please enter a Student ID");
+            return;
+        }
+        const student={id, name, address}
+        fetch("http://localhost:8080/student/"+id, {
+            method:"PUT",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify(student)
+        }).then(()=>{
+            console.log("Student updated")
+        })
+    }
+
+    const handleDelete=(id)=>{
+        if (!id || id.trim() === "") {
+            console.log("Please enter a Student ID");
+            return;
+        }
+        fetch("http://localhost:8080/student/"+id, {
+            method:"DELETE",
+        }).then(()=>{
+            console.log("Student deleted")
+        })
+    }
   return (
     <Container>
         <Paper elevation={3} style={paperStyle}>
@@ -69,10 +96,10 @@ export default function Student() {
             value={id}
             onChange={(e)=>setID(e.target.value)}
             />
-            <Button variant="outlined" color="primary" onClick={handleClick}>
+            <Button variant="outlined" color="primary" onClick={() => handleUpdate(id)}>
                 Update
             </Button>
-            <Button variant="contained" color="primary" onClick={handleClick}>
+            <Button variant="contained" color="primary" onClick={() => handleDelete(id)}>
                 Delete
             </Button>
             </Box>

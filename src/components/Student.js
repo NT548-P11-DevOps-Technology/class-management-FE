@@ -14,7 +14,7 @@ export default function Student() {
         e.preventDefault()
         const student={name, address}
         console.log(student)
-        fetch("http://localhost:8080/student/add", {
+        fetch("/student/add", {
             method:"POST",
             headers:{"Content-Type":"application/json"},
             body:JSON.stringify(student)
@@ -24,7 +24,7 @@ export default function Student() {
     }
 
     React.useEffect(()=>{
-        fetch("http://localhost:8080/student/getAll")
+        fetch("/student/getAll")
         .then(res=>res.json())
         .then((result)=>{
             setStudents(result)
@@ -37,7 +37,7 @@ export default function Student() {
             return;
         }
         const student={id, name, address}
-        fetch("http://localhost:8080/student/"+id, {
+        fetch("/student/"+id, {
             method:"PUT",
             headers:{"Content-Type":"application/json"},
             body:JSON.stringify(student)
@@ -51,7 +51,7 @@ export default function Student() {
             console.log("Please enter a Student ID");
             return;
         }
-        fetch("http://localhost:8080/student/"+id, {
+        fetch("/student/"+id, {
             method:"DELETE",
         }).then(()=>{
             console.log("Student deleted")

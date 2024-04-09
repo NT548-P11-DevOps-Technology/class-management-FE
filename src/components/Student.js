@@ -14,6 +14,7 @@ export default function Student() {
         e.preventDefault()
         const student={name, address}
         console.log(student)
+        // use fetch to send data to the server
         fetch("http://localhost:8080/student/add", {
             method:"POST",
             headers:{"Content-Type":"application/json"},

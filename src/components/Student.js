@@ -61,48 +61,48 @@ export default function Student() {
   return (
     <Container>
         <Paper elevation={3} style={paperStyle}>
-            <h1 style={{color:"blue"}}><u>Add Student</u></h1>
+            <h1 style={{color:"blue"}}>Add Student</h1>
             <Box
-            component="form"
-            sx={{
-                '& > :not(style)': { m: 1},
-            }}
-            noValidate
-            autoComplete="off"
+                component="form"
+                sx={{
+                    '& > :not(style)': { m: 1},
+                }}
+                noValidate
+                autoComplete="off"
             >
-            <TextField id="outlined-basic" label="Student name" variant="outlined" fullWidth
-            value={name}
-            onChange={(e)=>setName(e.target.value)}
-            />
-            <TextField id="outlined-basic" label="Student address" variant="outlined" fullWidth
-            value={address}
-            onChange={(e)=>setAddress(e.target.value)}
-            />
-            <Button variant="contained" color="secondary" onClick={handleClick}>
-                Submit
-            </Button>
+                <TextField id="outlined-basic" label="Student name" variant="outlined" fullWidth
+                    value={name}
+                    onChange={(e)=>setName(e.target.value)}
+                />
+                <TextField id="outlined-basic" label="Student address" variant="outlined" fullWidth
+                    value={address}
+                    onChange={(e)=>setAddress(e.target.value)}
+                />
+                <Button variant="contained" color="secondary" onClick={handleClick}>
+                    Submit
+                </Button>
             </Box>
         </Paper>
         <Paper elevation={3} style={paperStyle}>
-            <h1 style={{color:"brown"}}><u>Update Or Delete by ID</u></h1>
+            <h1 style={{color:"brown"}}>Update Or Delete by ID</h1>
             <Box
-            component="form"
-            sx={{
-                '& > :not(style)': { m: 1},
-            }}
-            noValidate
-            autoComplete="off"
-            >
-            <TextField id="outlined-basic" label="Student ID" variant="outlined" fullWidth
-            value={id}
-            onChange={(e)=>setID(e.target.value)}
-            />
-            <Button variant="outlined" color="primary" onClick={() => handleUpdate(id)}>
-                Update
-            </Button>
-            <Button variant="contained" color="primary" onClick={() => handleDelete(id)}>
-                Delete
-            </Button>
+                component="form"
+                sx={{
+                    '& > :not(style)': { m: 1},
+                }}
+                noValidate
+                autoComplete="off"
+                >
+                <TextField id="outlined-basic" label="Student ID" variant="outlined" fullWidth
+                    value={id}
+                    onChange={(e)=>setID(e.target.value)}
+                />
+                <Button variant="outlined" color="primary" onClick={() => handleUpdate(id)}>
+                    Update
+                </Button>
+                <Button variant="contained" color="primary" onClick={() => handleDelete(id)}>
+                    Delete
+                </Button>
             </Box>
         </Paper>
         <h1>Students</h1>

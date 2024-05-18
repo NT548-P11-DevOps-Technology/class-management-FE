@@ -19,7 +19,7 @@ const Register = () => {
 
   const navigate = useNavigate();
   const handleSubmit = (event) => {
-    event.preventDefault();
+    if (event) event.preventDefault();
     if (inputData.password !== inputData.confirmPassword) {
       alert('Passwords do not match');
       return;

@@ -19,7 +19,7 @@ const Login = () => {
     const navigate = useNavigate();
     axios.defaults.withCredentials = true;
     const handleSubmit = (event) => {
-        event.preventDefault();
+        if (event) event.preventDefault();
         axios.post('http://localhost:8081/login', loginData)
         .then(res => {
             if (res.data.Status === "Success") {
@@ -28,7 +28,7 @@ const Login = () => {
                 alert(res.data.Error);
             }
         })
-        .then(err => console.log(err));
+        .catch(err => console.log(err));
     };
 
     return (

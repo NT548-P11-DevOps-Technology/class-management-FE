@@ -1,7 +1,7 @@
 import { Dialog, DialogActions, DialogContent, DialogTitle, TextField, Button } from '@mui/material';
 import React, { useState } from 'react'
 
-const FormDialog = ({ title, type, open, onClose, onSubmit }) => {
+const FormDialog = ({ title, type, action, selectedId, open, onClose }) => {
     const [formData, setFormData] = useState({});
     
     const handleChange = (e) => {
@@ -12,9 +12,60 @@ const FormDialog = ({ title, type, open, onClose, onSubmit }) => {
     }
 
     const handleSubmit = () => {
-        onSubmit(formData);
+        if (action === 'add') {
+            handleAdd();
+        } else if (action === 'edit') {
+            handleEdit(selectedId);
+        }
         onClose();
     };
+
+    const handleAdd = (e) => {
+        if (e) e.preventDefault();
+        const student = {
+            fullName: formData.fullName,
+            yearOfBirth: formData.yearOfBirth,
+            course: formData.course,
+            classCode: formData.classCode,
+            phoneNumber: formData.phoneNumber,
+            email: formData.email
+         }
+        console.log(student)
+        fetch("http://localhost:8080/student/add", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(student)
+        })
+        .then(() => {
+            alert("Student added successfully")
+        })
+        .catch((err) => {
+            alert(err)
+        })
+    }
+    
+    const handleEdit = (id) => {
+        const student = { 
+            id: id,
+            fullName: formData.fullName,
+            yearOfBirth: formData.yearOfBirth,
+            course: formData.course,
+            classCode: formData.classCode,
+            phoneNumber: formData.phoneNumber,
+            email: formData.email
+         }
+        fetch("http://localhost:8080/student/"+id, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(student)
+        })
+        .then(() => {
+            alert("Student updated successfully")
+        })
+        .catch((err) => {
+            alert(err)
+        })
+    }
 
     const getFields = () => {
         switch (type) {

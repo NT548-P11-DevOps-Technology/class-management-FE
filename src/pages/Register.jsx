@@ -25,7 +25,7 @@ const Register = () => {
       return;
     }
     const { confirmPassword, ...registerData } = inputData;
-    axios.post('http://localhost:8081/register', registerData)
+    axios.post('http://localhost:3077/register', registerData)
     .then(res => {
       if (res.data.Status === "Success") {
         navigate('/login');

@@ -7,8 +7,8 @@ import { Button } from '@mui/material';
 import FormDialog from '../FormDialog/FormDialog';
 
 const DataTable = ({ type, data }) => {
-    const [selectedRow, setSelectedRow] = useState(null);
     const [openDialog, setOpenDialog] = useState(false);
+    const [seletedRowId, setSelectedRowId] = useState(null);
 
     let columns;
     switch (type) {
@@ -25,18 +25,26 @@ const DataTable = ({ type, data }) => {
             columns = [];
             break;
     }
-
-    const handleEdit = (row) => {
-        setSelectedRow(row);
+    
+    const handleDelete = (id) => {
+        fetch("http://localhost:8080/student/"+id, {
+            method: "DELETE"
+        })
+        .then(() => {
+            alert("Student deleted successfully")
+        })
+        .catch((err) => {
+            alert(err)
+        })
+    }
+    const handleOpenDialog = (id) => {
+        setSelectedRowId(id);
         setOpenDialog(true);
-    };
-
-    const handleDelete = (row) => {
-        console.log('Delete row', row);
-    };
+    }
 
     const handleCloseDialog = () => {
         setOpenDialog(false);
+        setSelectedRowId(null);
     }
 
     const editDeleteColumns = [
@@ -48,7 +56,7 @@ const DataTable = ({ type, data }) => {
                 <Button
                     variant='contained'
                     style={{ backgroundColor: '#FFD700', color: 'black' }}
-                    onClick={() => handleEdit(params.row)}
+                    onClick={() => handleOpenDialog(params.id)}
                 >
                     Edit
                 </Button>
@@ -62,7 +70,7 @@ const DataTable = ({ type, data }) => {
                 <Button
                     variant='contained'
                     style={{ backgroundColor: '#DC143C' }}
-                    onClick={() => handleDelete(params.row)}
+                    onClick={() => handleDelete(params.id)}
                 >
                     Delete
                 </Button>
@@ -87,7 +95,7 @@ const DataTable = ({ type, data }) => {
                 pageSizeOptions={[5, 10]}
                 style={{ backgroundColor: '#0E78F9' }}
             />
-            <FormDialog title={type === 'student' ? 'Edit Student' : 'Edit Lecturer'} type={type} open={openDialog} onClose={handleCloseDialog}/>
+            <FormDialog title={type === 'student' ? 'Edit Student' : 'Edit Lecturer'} type={type} action={'edit'} selectedId={seletedRowId} open={openDialog} onClose={handleCloseDialog}/>
         </div>
     );
 };

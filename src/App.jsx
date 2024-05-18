@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes, useNavigate } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import Root from './pages/Root';
 import Student from './pages/Student';
 import Lecture from './pages/Lecture';

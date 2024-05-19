@@ -27,16 +27,29 @@ const DataTable = ({ type, data }) => {
     }
     
     const handleDelete = (id) => {
-        fetch("http://localhost:8080/student/"+id, {
+        if (type === 'student') {
+            fetch("http://localhost:8080/student/"+id, {
             method: "DELETE"
-        })
-        .then(() => {
-            alert("Student deleted successfully")
-        })
-        .catch((err) => {
-            alert(err)
-        })
+            })
+            .then(() => {
+                alert("Student deleted successfully")
+            })
+            .catch((err) => {
+                alert(err)
+            })
+        } else if (type === 'lecturer') {
+            fetch("http://localhost:5000/lecturer/"+id, {
+            method: "DELETE"
+            })
+            .then(() => {
+                alert("Lecturer deleted successfully")
+            })
+            .catch((err) => {
+                alert(err)
+            })
+        }
     }
+    
     const handleOpenDialog = (id) => {
         setSelectedRowId(id);
         setOpenDialog(true);

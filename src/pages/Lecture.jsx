@@ -1,10 +1,11 @@
 import { Button } from '@mui/material'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import DataTable from '../components/DataTable/DataTable'
 import FormDialog from '../components/FormDialog/FormDialog';
 
 const Lecture = () => {
   const [open, setOpen] = useState(false);
+  const [lecturers, setLecturers] = useState([])
 
   const handleOpen = () => {
     setOpen(true);
@@ -14,19 +15,26 @@ const Lecture = () => {
     setOpen(false);
   }
 
-  const handleSubmit = (data) => {
-    setOpen(false);
-  }
+  useEffect(() => {
+    fetch("http://localhost:5000/lecturer/getAll")
+    .then(res => res.json())
+    .then((result) => {
+      setLecturers(result)
+    })
+    .catch((err) => {
+      alert(err)
+    })
+  }, []);
 
   return (
     <div style={{ display: 'inline-flex', flexDirection: 'column', gap: '100px' }}>
       <section style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         <h2 style={{ color: 'white'}}>Lecturer Dashboard</h2>
         <Button variant='contained' style={{ width: '200px',backgroundColor: '#3CB371' }} onClick={handleOpen}>Add new Lecturer</Button>
-        <FormDialog title='Add new Lecturer' type="lecturer" open={open} onClose={handleClose} onSubmit={handleSubmit}/>
+        <FormDialog title='Add new Lecturer' type="lecturer" action={'add'} open={open} onClose={handleClose}/>
       </section>
       <section >
-        <DataTable type={'lecturer'} data={[]} />
+        <DataTable type={'lecturer'} data={lecturers.map( lecturer => ({...lecturer, id: lecturer._id}))} />
       </section>
     </div>
   )

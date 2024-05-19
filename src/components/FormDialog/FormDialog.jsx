@@ -13,14 +13,22 @@ const FormDialog = ({ title, type, action, selectedId, open, onClose }) => {
 
     const handleSubmit = () => {
         if (action === 'add') {
-            handleAdd();
+            if (type === 'student') {
+                handleAddStudent();
+            } else if (type === 'lecturer') {
+                handleAddLecturer();
+            }
         } else if (action === 'edit') {
-            handleEdit(selectedId);
+            if (type === 'student') {
+                handleEditStudent(selectedId);
+            } else if (type === 'lecturer') {
+                handleEditLecturer(selectedId);
+            }
         }
         onClose();
     };
 
-    const handleAdd = (e) => {
+    const handleAddStudent = (e) => {
         if (e) e.preventDefault();
         const student = {
             fullName: formData.fullName,
@@ -30,7 +38,6 @@ const FormDialog = ({ title, type, action, selectedId, open, onClose }) => {
             phoneNumber: formData.phoneNumber,
             email: formData.email
          }
-        console.log(student)
         fetch("http://localhost:8080/student/add", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -43,8 +50,30 @@ const FormDialog = ({ title, type, action, selectedId, open, onClose }) => {
             alert(err)
         })
     }
+
+    const handleAddLecturer = (e) => {
+        if (e) e.preventDefault();
+        const lecturer = {
+            fullName: formData.fullName,
+            degree: formData.degree,
+            classCode: formData.classCode,
+            phoneNumber: formData.phoneNumber,
+            email: formData.email
+         }
+        fetch("http://localhost:5000/lecturer/add", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(lecturer)
+        })
+        .then(() => {
+            alert("Lecturer added successfully")
+        })
+        .catch((err) => {
+            alert(err)
+        })
+    }
     
-    const handleEdit = (id) => {
+    const handleEditStudent = (id) => {
         const student = { 
             id: id,
             fullName: formData.fullName,
@@ -61,6 +90,28 @@ const FormDialog = ({ title, type, action, selectedId, open, onClose }) => {
         })
         .then(() => {
             alert("Student updated successfully")
+        })
+        .catch((err) => {
+            alert(err)
+        })
+    }
+
+    const handleEditLecturer = (id) => {
+        const lecturer = {
+            id: id,
+            fullName: formData.fullName,
+            degree: formData.degree,
+            classCode: formData.classCode,
+            phoneNumber: formData.phoneNumber,
+            email: formData.email
+        }
+        fetch("http://localhost:5000/lecturer/"+id, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(lecturer)
+        })
+        .then(() => {
+            alert("Lecturer updated successfully")
         })
         .catch((err) => {
             alert(err)

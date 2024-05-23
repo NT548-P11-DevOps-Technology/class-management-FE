@@ -15,7 +15,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   axios.defaults.withCredentials = true;
   useEffect(() => {
-    axios.get('http://localhost:3077')
+    axios.get(process.env.REACT_APP_BASE_URL_AUTH)
     .then(res => {
       if (res.data.Status === "Success") {
         setAuthenticated(true);
@@ -30,7 +30,7 @@ const Navbar = () => {
   }, []);
 
   const handleLogout = () => {
-    axios.get('http://localhost:3077/logout')
+    axios.get(process.env.REACT_APP_BASE_URL_AUTH + '/logout')
     .then(res => {
       navigate('/login');
     }).catch(err => console.log(err));

@@ -17,12 +17,16 @@ const FormDialog = ({ title, type, action, selectedId, open, onClose }) => {
                 handleAddStudent();
             } else if (type === 'lecturer') {
                 handleAddLecturer();
+            } else if (type === 'class') {
+                handleAddClass();
             }
         } else if (action === 'edit') {
             if (type === 'student') {
                 handleEditStudent(selectedId);
             } else if (type === 'lecturer') {
                 handleEditLecturer(selectedId);
+            } else if (type === 'class') {
+                handleEditClass(selectedId);
             }
         }
         onClose();
@@ -38,13 +42,19 @@ const FormDialog = ({ title, type, action, selectedId, open, onClose }) => {
             phoneNumber: formData.phoneNumber,
             email: formData.email
          }
-        fetch("http://localhost:8080/student/add", {
+        fetch(process.env.REACT_APP_BASE_URL_STUDENT + "/student/add", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(student)
         })
         .then(() => {
             alert("Student added successfully")
+            return fetch(`${process.env.REACT_APP_BASE_URL_CLASS}/class/update/${formData.classCode}`, {
+                method: "PUT"
+            });
+        })
+        .then(() => {
+            alert("Class updated successfully");
         })
         .catch((err) => {
             alert(err)
@@ -60,13 +70,38 @@ const FormDialog = ({ title, type, action, selectedId, open, onClose }) => {
             phoneNumber: formData.phoneNumber,
             email: formData.email
          }
-        fetch("http://localhost:5000/lecturer/add", {
+        fetch(process.env.REACT_APP_BASE_URL_LECTURER + "/lecturer/add", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(lecturer)
         })
         .then(() => {
             alert("Lecturer added successfully")
+            return fetch(`${process.env.REACT_APP_BASE_URL_CLASS}/class/update/${formData.classCode}`, {
+                method: "PUT"
+            });
+        })
+        .then(() => {
+            alert("Class updated successfully");
+        })
+        .catch((err) => {
+            alert(err)
+        })
+    }
+
+    const handleAddClass = (e) => {
+        if (e) e.preventDefault();
+        const classData = {
+            classCode: formData.classCode,
+            className: formData.className
+        }
+        fetch(process.env.REACT_APP_BASE_URL_CLASS + "/class/add", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(classData)
+        })
+        .then(() => {
+            alert("Class added successfully")
         })
         .catch((err) => {
             alert(err)
@@ -117,6 +152,23 @@ const FormDialog = ({ title, type, action, selectedId, open, onClose }) => {
             alert(err)
         })
     }
+
+    const handleEditClass = (classCode) => {
+        const classData = {
+            className: formData.className,
+        };
+        fetch(`http://localhost:80/class/update/${classCode}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(classData)
+        })
+        .then(() => {
+            alert("Class updated successfully")
+        })
+        .catch((err) => {
+            alert(err)
+        });
+    };
 
     const getFields = () => {
         switch (type) {
@@ -223,6 +275,29 @@ const FormDialog = ({ title, type, action, selectedId, open, onClose }) => {
                             name="email"
                             label="Email"
                             type="email"
+                            fullWidth
+                            variant="outlined"
+                            onChange={handleChange}
+                        />
+                    </>
+                );
+            case 'class':
+                return (
+                    <>
+                        <TextField
+                            margin="dense"
+                            name="classCode"
+                            label="Class Code"
+                            type="text"
+                            fullWidth
+                            variant="outlined"
+                            onChange={handleChange}
+                        />
+                        <TextField
+                            margin="dense"
+                            name="className"
+                            label="Class Name"
+                            type="text"
                             fullWidth
                             variant="outlined"
                             onChange={handleChange}

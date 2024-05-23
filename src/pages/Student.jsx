@@ -16,7 +16,7 @@ const Student = () => {
   }
   
   useEffect(() => {
-    fetch("http://localhost:8080/student/getAll")
+    fetch(process.env.REACT_APP_BASE_URL_STUDENT + "/student/getAll")
     .then(res => res.json())
     .then((result) => {
       setStudents(result)

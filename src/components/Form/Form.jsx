@@ -8,7 +8,7 @@ const Form = ({ type, formData, onChange, onSubmit }) => {
         onChange && onChange(name, value);
     };
     const handleSubmit = (e) => {
-      e.preventDefault();
+      if (e) e.preventDefault();
 
       const isAnyFieldEmpty = Object.values(formData).some(value => value.trim() === '');
       if (isAnyFieldEmpty) {

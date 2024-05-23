@@ -16,9 +16,10 @@ const Lecture = () => {
   }
 
   useEffect(() => {
-    fetch("http://localhost:5000/lecturer/getAll")
+    fetch(process.env.REACT_APP_BASE_URL_LECTURER + "/lecturer/getAll")
     .then(res => res.json())
     .then((result) => {
+      console.log(result)
       setLecturers(result)
     })
     .catch((err) => {

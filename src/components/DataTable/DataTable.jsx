@@ -26,40 +26,6 @@ const DataTable = ({ type, data }) => {
             break;
     }
     
-    const handleDelete = (id) => {
-        if (type === 'student') {
-            fetch("http://localhost:8080/student/"+id, {
-            method: "DELETE"
-            })
-            .then(() => {
-                alert("Student deleted successfully")
-            })
-            .catch((err) => {
-                alert(err)
-            })
-        } else if (type === 'lecturer') {
-            fetch("http://localhost:5000/lecturer/"+id, {
-            method: "DELETE"
-            })
-            .then(() => {
-                alert("Lecturer deleted successfully")
-            })
-            .catch((err) => {
-                alert(err)
-            })
-        }
-    }
-    
-    const handleOpenDialog = (id) => {
-        setSelectedRowId(id);
-        setOpenDialog(true);
-    }
-
-    const handleCloseDialog = () => {
-        setOpenDialog(false);
-        setSelectedRowId(null);
-    }
-
     const editDeleteColumns = [
         {
             field: 'edit',
@@ -91,8 +57,50 @@ const DataTable = ({ type, data }) => {
         },
     ];
 
-    if (type === 'student' || type === 'lecturer') {
-        columns = [...columns, ...editDeleteColumns];
+    columns = [...columns, ...editDeleteColumns];
+
+    const handleDelete = (id) => {
+        if (type === 'student') {
+            fetch(process.env.REACT_APP_BASE_URL_STUDENT + "/student/"+id, {
+            method: "DELETE"
+            })
+            .then(() => {
+                alert("Student deleted successfully")
+            })
+            .catch((err) => {
+                alert(err)
+            })
+        } else if (type === 'lecturer') {
+            fetch(process.env.REACT_APP_BASE_URL_LECTURER + "/lecturer/"+id, {
+            method: "DELETE"
+            })
+            .then(() => {
+                alert("Lecturer deleted successfully")
+            })
+            .catch((err) => {
+                alert(err)
+            })
+        } else if (type === 'class') {
+            fetch(process.env.REACT_APP_BASE_URL_CLASS + "/class/"+id, {
+            method: "DELETE"
+            })
+            .then(() => {
+                alert("Class deleted successfully")
+            })
+            .catch((err) => {
+                alert(err)
+            })
+        }
+    }
+    
+    const handleOpenDialog = (id) => {
+        setSelectedRowId(id);
+        setOpenDialog(true);
+    }
+
+    const handleCloseDialog = () => {
+        setOpenDialog(false);
+        setSelectedRowId(null);
     }
 
     return (

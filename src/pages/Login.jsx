@@ -20,7 +20,7 @@ const Login = () => {
     axios.defaults.withCredentials = true;
     const handleSubmit = (event) => {
         if (event) event.preventDefault();
-        axios.post('http://localhost:3077/login', loginData)
+        axios.post(process.env.REACT_APP_BASE_URL_AUTH + '/login', loginData)
         .then(res => {
             if (res.data.Status === "Success") {
                 navigate('/');

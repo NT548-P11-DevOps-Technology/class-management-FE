@@ -118,7 +118,7 @@ const FormDialog = ({ title, type, action, selectedId, open, onClose }) => {
             phoneNumber: formData.phoneNumber,
             email: formData.email
          }
-        fetch("http://localhost:8080/student/"+id, {
+        fetch(process.env.REACT_APP_BASE_URL_STUDENT + "/student/"+id, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(student)
@@ -140,7 +140,7 @@ const FormDialog = ({ title, type, action, selectedId, open, onClose }) => {
             phoneNumber: formData.phoneNumber,
             email: formData.email
         }
-        fetch("http://localhost:5000/lecturer/"+id, {
+        fetch(process.env.REACT_APP_BASE_URL_LECTURER + "/lecturer/"+id, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(lecturer)
@@ -157,7 +157,7 @@ const FormDialog = ({ title, type, action, selectedId, open, onClose }) => {
         const classData = {
             className: formData.className,
         };
-        fetch(`http://localhost:80/class/update/${classCode}`, {
+        fetch(`${process.env.REACT_APP_BASE_URL_CLASS}/class/update/${classCode}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(classData)

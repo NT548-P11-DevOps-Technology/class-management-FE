@@ -13,17 +13,18 @@ const Navbar = () => {
   const [openDialog, setOpenDialog] = useState(false);
 
   const navigate = useNavigate();
-  axios.defaults.withCredentials = true;
   useEffect(() => {
     axios.get(process.env.REACT_APP_BASE_URL_AUTH)
     .then(res => {
       if (res.data.Status === "Success") {
         setAuthenticated(true);
         setEmail(res.data.user.email);
+        console.log(res.data.Status);
       } else {
         setAuthenticated(false);
-        setOpenDialog(true);
+        if (res.data.Error !== undefined) setOpenDialog(true);
         setMessage(res.data.Error);
+        console.log(res.data.Status);
       }
     })
     .then(err => console.log(err));

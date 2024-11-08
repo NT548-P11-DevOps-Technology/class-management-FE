@@ -17,7 +17,6 @@ const Login = () => {
     };
 
     const navigate = useNavigate();
-    axios.defaults.withCredentials = true;
     const handleSubmit = (event) => {
         if (event) event.preventDefault();
         axios.post(process.env.REACT_APP_BASE_URL_AUTH + '/login', loginData)

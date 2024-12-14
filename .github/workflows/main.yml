@@ -8,6 +8,18 @@ on:
     branches:
       - main
       - stage
+  workflow_call:
+    secrets:
+      SONAR_TOKEN:
+        required: true
+      SONAR_HOST_URL:
+        required: true
+      HARBOR_USERNAME:
+        required: true
+      HARBOR_PASSWORD:
+        required: true
+      HARBOR_REGISTRY:
+        required: true
 jobs:
   sonar_scan:
     runs-on: ubuntu-latest

@@ -74,7 +74,7 @@ jobs:
           TIMESTAMP=$(date +%s)
           
           # Build Docker image
-          docker build -t "$IMAGE_NAME:$COMMIT_SHA" -t "$IMAGE_NAME:latest" .
+          docker build -t "$IMAGE_NAME:$COMMIT_SHA-$TIMESTAMP" -t "$IMAGE_NAME:latest" .
           
           # Push Docker image
           docker push "$IMAGE_NAME:$COMMIT_SHA-$TIMESTAMP"

@@ -68,7 +68,7 @@ jobs:
       
       - name: Build and Push Docker Images
         run: |
-          SERVICE_NAME="${SERVICE_NAME,,}"
+          SERVICE_NAME="${REPO_NAME,,}"
           IMAGE_NAME="${{ secrets.HARBOR_REGISTRY }}/${ENVIRONMENT}/${SERVICE_NAME}"
           TIMESTAMP=$(date +%s)
           

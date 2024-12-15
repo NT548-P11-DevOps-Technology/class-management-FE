@@ -141,6 +141,7 @@ jobs:
           args: --all-projects
           
   sonar_scan:
+    needs: security_scan
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo

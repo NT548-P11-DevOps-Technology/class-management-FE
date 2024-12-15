@@ -81,8 +81,8 @@ jobs:
         if: needs.determine-project-type.outputs.project_type == 'python'
         uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
-          
+          python-version: '3.10'
+
       # PHP setup for PHP projects
       - name: Setup PHP
         if: needs.determine-project-type.outputs.project_type == 'php'

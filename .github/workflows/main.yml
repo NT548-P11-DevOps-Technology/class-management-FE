@@ -37,6 +37,109 @@ on:
       HARBOR_REGISTRY:
         required: true
 jobs:
+  determine-project-type:
+    runs-on: ubuntu-latest
+    outputs:
+      project_type: ${{ steps.set-type.outputs.project_type }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        
+      - name: Determine project type
+        id: set-type
+        run: |
+          if [ -f "package.json" ]; then
+            echo "project_type=node" >> $GITHUB_OUTPUT
+          elif [ -f "requirements.txt" ]; then
+            echo "project_type=python" >> $GITHUB_OUTPUT
+          elif [ -f "composer.json" ]; then
+            echo "project_type=php" >> $GITHUB_OUTPUT
+          else
+            echo "project_type=unknown" >> $GITHUB_OUTPUT
+          fi
+  
+  security_scan:
+    needs: determine-project-type
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.branch || github.ref_name }}
+          fetch-depth: 0
+          submodules: recursive
+
+      # Node.js setup for Node projects
+      - name: Setup Node.js
+        if: needs.determine-project-type.outputs.project_type == 'node'
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      # Python setup for Python projects
+      - name: Setup Python
+        if: needs.determine-project-type.outputs.project_type == 'python'
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+          
+      # PHP setup for PHP projects
+      - name: Setup PHP
+        if: needs.determine-project-type.outputs.project_type == 'php'
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+
+      # Install dependencies based on project type
+      - name: Install dependencies (Node.js)
+        if: needs.determine-project-type.outputs.project_type == 'node'
+        run: |
+          if [ -f "package.json" ]; then
+            npm install
+          fi
+          
+      - name: Install dependencies (Python)
+        if: needs.determine-project-type.outputs.project_type == 'python'
+        run: |
+          if [ -f "requirements.txt" ]; then
+            pip install -r requirements.txt
+          fi
+          
+      - name: Install dependencies (PHP)
+        if: needs.determine-project-type.outputs.project_type == 'php'
+        run: |
+          if [ -f "composer.json" ]; then
+            composer install
+          fi
+
+      # Run Snyk scan based on project type
+      - name: Run Snyk to check for vulnerabilities (Node.js)
+        if: needs.determine-project-type.outputs.project_type == 'node'
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: monitor
+          args: --all-projects
+
+      - name: Run Snyk to check for vulnerabilities (Python)
+        if: needs.determine-project-type.outputs.project_type == 'python'
+        uses: snyk/actions/python@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: monitor
+          args: --all-projects
+          
+      - name: Run Snyk to check for vulnerabilities (PHP)
+        if: needs.determine-project-type.outputs.project_type == 'php'
+        uses: snyk/actions/php@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: monitor
+          args: --all-projects
+          
   sonar_scan:
     runs-on: ubuntu-latest
     steps:

@@ -36,6 +36,8 @@ on:
         required: true
       HARBOR_REGISTRY:
         required: true
+      SNYK_TOKEN: 
+        required: true
 jobs:
   determine-project-type:
     runs-on: ubuntu-latest

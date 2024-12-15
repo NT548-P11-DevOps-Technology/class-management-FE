@@ -38,7 +38,7 @@ jobs:
         with:
           projectBaseDir: .
           args: >
-            -Dsonar.projectKey=devops
+            -Dsonar.projectKey=${{ github.event.repository.name }}.${{ github.ref_name }}
             -Dsonar.sources=.
             -Dsonar.exclusions=**/*.java,**/node_modules/**,**/*.json
             -Dsonar.language=js,ts

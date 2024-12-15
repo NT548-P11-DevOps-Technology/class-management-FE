@@ -8,6 +8,16 @@ on:
     branches:
       - main
       - stag
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to run workflow on'
+        required: true
+        default: 'stag'
+        type: choice
+        options:
+          - main
+          - stag
   workflow_call:
     secrets:
       SONAR_TOKEN:
@@ -27,6 +37,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
         with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.branch || github.ref_name }}
           fetch-depth: 0
           submodules: recursive
       
@@ -51,6 +62,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.branch || github.ref_name }}
           fetch-depth: 0
           submodules: recursive
 

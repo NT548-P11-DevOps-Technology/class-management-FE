@@ -112,6 +112,13 @@ jobs:
           echo "Maven version:"
           mvn -version || true
 
+      - name: Install Snyk CLI
+        run: |
+          curl -Lo ./snyk https://static.snyk.io/cli/latest/snyk-linux
+          chmod +x ./snyk
+          sudo mv ./snyk /usr/local/bin/
+          snyk --version
+
       - name: Set Maven Wrapper Permissions
         if: needs.determine-project-type.outputs.project_type == 'java'
         run: |
@@ -152,19 +159,7 @@ jobs:
           needs.determine-project-type.outputs.project_type == 'java'
         run: |
           echo "Using JAVA_HOME: $JAVA_HOME"
-          echo "Current directory:"
-          pwd
-          echo "Directory contents:"
-          ls -la
-          
-          # Try using mvnw if it exists, otherwise use mvn
-          if [ -f "./mvnw" ]; then
-            echo "Using Maven Wrapper"
-            ./mvnw dependency:resolve -X
-          else
-            echo "Using Global Maven"
-            mvn dependency:resolve -X
-          fi
+          ./mvnw dependency:resolve -X
 
       # Run Snyk scan based on project type
       - name: Run Snyk to check for vulnerabilities (Node.js)
@@ -199,21 +194,30 @@ jobs:
       # Snyk scan for Java projects
       - name: Run Snyk to check for vulnerabilities (Java)
         if: needs.determine-project-type.outputs.project_type == 'java'
-        uses: snyk/actions/maven@master
-        env:
-          JAVA_HOME: ${{ env.JAVA_HOME }}
-          PATH: ${{ env.JAVA_HOME }}/bin:${{ env.PATH }}
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-          DEBUG: "*snyk*"
-          SNYK_DEBUG: "1"
-          MAVEN_OPTS: "-Dhttps.protocols=TLSv1.2 -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true"
-        with:
-          command: monitor
-          args: >
-            --all-projects
+        run: |
+          echo "Running Snyk scan with Maven..."
+          export DEBUG=*snyk*
+          export SNYK_DEBUG=1
+
+          # Display build environment
+          echo "Build Environment:"
+          java -version
+          mvn -version
+
+          # Run Snyk test
+          snyk auth ${{ secrets.SNYK_TOKEN }}
+          snyk test \
+            --all-projects \
+            --debug \
+            --maven-aggregate-project \
+            --severity-threshold=high || true
+
+          # Run Snyk monitor
+          snyk monitor \
+            --all-projects \
+            --debug \
+            --maven-aggregate-project \
             --severity-threshold=high
-            --debug
-            --maven-aggregate-project
 
       - name: Print Debug Information
         if: always() && needs.determine-project-type.outputs.project_type == 'java'
@@ -223,14 +227,13 @@ jobs:
           echo "PATH: $PATH"
           echo "Working Directory:"
           pwd
-          echo "Directory Contents:"
           ls -la
-          echo "Java Version:"
-          java -version || true
-          echo "Maven Version:"
-          mvn -version || true
+          echo "Maven Wrapper Version:"
+          ./mvnw -v
+          echo "Snyk Version:"
+          snyk --version
           echo "=== Snyk Logs ==="
-          cat ~/.snyk/logs/* || true
+          find ~ -name "*.log" -type f -exec cat {} \;
 
   sonar_scan:
     needs: security_scan

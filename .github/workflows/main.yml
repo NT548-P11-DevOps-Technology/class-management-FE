@@ -168,9 +168,11 @@ jobs:
         uses: snyk/actions/python@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+          DEBUG: "*snyk*"
+          SNYK_DEBUG: "1"
         with:
           command: monitor
-          args: --all-projects
+          args: --all-projects --debug
 
       - name: Run Snyk to check for vulnerabilities (PHP)
         if: needs.determine-project-type.outputs.project_type == 'php'
@@ -188,9 +190,18 @@ jobs:
         env:
           JAVA_HOME: ${{ env.JAVA_HOME }}
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+          DEBUG: "*snyk*"
+          SNYK_DEBUG: "1"
         with:
           command: monitor
-          args: --all-projects --severity-threshold=high
+          args: --all-projects --severity-threshold=high --debug
+
+      # Add a step to print Snyk logs
+      - name: Print Snyk Debug Logs
+        if: always()
+        run: |
+          echo "Snyk Debug Logs:"
+          cat ~/.snyk/logs/* || true
 
   sonar_scan:
     needs: security_scan

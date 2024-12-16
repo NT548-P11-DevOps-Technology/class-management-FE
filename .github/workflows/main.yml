@@ -173,7 +173,7 @@ jobs:
 
       - name: Run Snyk to check for vulnerabilities (Python)
         if: needs.determine-project-type.outputs.project_type == 'python'
-        uses: snyk/actions/python@master
+        uses: snyk/actions/python-3.7@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
           DEBUG: "*snyk*"
@@ -195,45 +195,18 @@ jobs:
       - name: Run Snyk to check for vulnerabilities (Java)
         if: needs.determine-project-type.outputs.project_type == 'java'
         run: |
-          echo "Running Snyk scan with Maven..."
-          export DEBUG=*snyk*
-          export SNYK_DEBUG=1
-
-          # Display build environment
-          echo "Build Environment:"
-          java -version
-          mvn -version
-
           # Run Snyk test
           snyk auth ${{ secrets.SNYK_TOKEN }}
           snyk test \
             --all-projects \
-            --debug \
             --maven-aggregate-project \
             --severity-threshold=high || true
 
           # Run Snyk monitor
           snyk monitor \
             --all-projects \
-            --debug \
             --maven-aggregate-project \
             --severity-threshold=high
-
-      - name: Print Debug Information
-        if: always() && needs.determine-project-type.outputs.project_type == 'java'
-        run: |
-          echo "=== Environment Information ==="
-          echo "JAVA_HOME: $JAVA_HOME"
-          echo "PATH: $PATH"
-          echo "Working Directory:"
-          pwd
-          ls -la
-          echo "Maven Wrapper Version:"
-          ./mvnw -v
-          echo "Snyk Version:"
-          snyk --version
-          echo "=== Snyk Logs ==="
-          find ~ -name "*.log" -type f -exec cat {} \;
 
   sonar_scan:
     needs: security_scan

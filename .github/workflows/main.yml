@@ -87,20 +87,6 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install dependencies (Python)
-        if: needs.determine-project-type.outputs.project_type == 'python'
-        run: |
-          pip install --upgrade pip
-          pip install pipenv
-          
-          if [ -f "Pipfile" ]; then
-          pipenv install --system --deploy
-          fi
-          
-          if [ -f "requirements.txt" ]; then
-          pip install -r requirements.txt
-          fi
-
       # PHP setup for PHP projects
       - name: Setup PHP
         if: needs.determine-project-type.outputs.project_type == 'php'
@@ -157,8 +143,15 @@ jobs:
       - name: Install dependencies (Python)
         if: needs.determine-project-type.outputs.project_type == 'python'
         run: |
+          pip install --upgrade pip
+          pip install pipenv
+          
+          if [ -f "Pipfile" ]; then
+          pipenv --python $(which python3) install --system --deploy
+          fi
+          
           if [ -f "requirements.txt" ]; then
-            pip install -r requirements.txt
+          pip install -r requirements.txt
           fi
 
       - name: Install dependencies (PHP)
@@ -196,8 +189,6 @@ jobs:
         with:
           command: monitor
           args: >
-            --file=Pipfile
-            --file=Pipfile.lock
             --all-projects
             --debug
 

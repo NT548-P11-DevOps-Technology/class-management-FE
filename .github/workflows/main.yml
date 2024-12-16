@@ -56,6 +56,8 @@ jobs:
             echo "project_type=python" >> $GITHUB_OUTPUT
           elif [ -f "composer.json" ]; then
             echo "project_type=php" >> $GITHUB_OUTPUT
+          elif [ -f "pom.xml" ] || [ -f "build.gradle" ] || [ -f "build.gradle.kts" ]; then
+            echo "project_type=java" >> $GITHUB_OUTPUT
           else
             echo "project_type=unknown" >> $GITHUB_OUTPUT
           fi
@@ -91,7 +93,25 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.1'
+      - name: Setup Java
+        if: needs.determine-project-type.outputs.project_type == 'java'
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
 
+      - name: Detect Java Build Tool
+        id: java-build-tool
+        if: needs.determine-project-type.outputs.project_type == 'java'
+        run: |
+          if [ -f "pom.xml" ]; then
+            echo "build_tool=maven" >> $GITHUB_OUTPUT
+          elif [ -f "build.gradle" ] || [ -f "build.gradle.kts" ]; then
+            echo "build_tool=gradle" >> $GITHUB_OUTPUT
+          else
+            echo "build_tool=unknown" >> $GITHUB_OUTPUT
+          fi
+  
       # Install dependencies based on project type
       - name: Install dependencies (Node.js)
         if: needs.determine-project-type.outputs.project_type == 'node'
@@ -112,6 +132,25 @@ jobs:
         run: |
           if [ -f "composer.json" ]; then
             composer install
+          fi
+
+      # Maven dependency installation
+      - name: Install dependencies (Maven)
+        if: >
+          needs.determine-project-type.outputs.project_type == 'java' && 
+          steps.java-build-tool.outputs.build_tool == 'maven'
+        run: mvn dependency:resolve
+      
+      # Gradle dependency installation  
+      - name: Install dependencies (Gradle)
+        if: >
+          needs.determine-project-type.outputs.project_type == 'java' && 
+          steps.java-build-tool.outputs.build_tool == 'gradle'
+        run: |
+          if [ -f "gradlew" ]; then
+            ./gradlew dependencies
+          else
+            gradle dependencies
           fi
 
       # Run Snyk scan based on project type
@@ -141,6 +180,16 @@ jobs:
         with:
           command: monitor
           args: --all-projects
+
+      # Snyk scan for Java projects
+      - name: Run Snyk to check for vulnerabilities (Java)
+        if: needs.determine-project-type.outputs.project_type == 'java'
+        uses: snyk/actions/java@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: monitor
+          args: --all-projects --severity-threshold=high
           
   sonar_scan:
     needs: security_scan

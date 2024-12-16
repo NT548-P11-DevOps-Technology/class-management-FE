@@ -184,7 +184,7 @@ jobs:
       # Snyk scan for Java projects
       - name: Run Snyk to check for vulnerabilities (Java)
         if: needs.determine-project-type.outputs.project_type == 'java'
-        uses: snyk/actions/java@master
+        uses: snyk/actions/maven@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:

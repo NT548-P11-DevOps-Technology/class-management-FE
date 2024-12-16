@@ -8,7 +8,23 @@ on:
     branches:
       - main
       - stag
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to run workflow on'
+        required: true
+        default: 'stag'
+        type: choice
+        options:
+          - main
+          - stag
   workflow_call:
+    inputs:
+      branch:
+        description: 'Branch to run workflow on'
+        type: string
+        required: false
+        default: ''
     secrets:
       SONAR_TOKEN:
         required: true
@@ -20,25 +36,225 @@ on:
         required: true
       HARBOR_REGISTRY:
         required: true
+      SNYK_TOKEN:
+        required: true
 jobs:
-  sonar_scan:
+  determine-project-type:
+    runs-on: ubuntu-latest
+    outputs:
+      project_type: ${{ steps.set-type.outputs.project_type }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Determine project type
+        id: set-type
+        run: |
+          if [ -f "package.json" ]; then
+            echo "project_type=node" >> $GITHUB_OUTPUT
+          elif [ -f "requirements.txt" ]; then
+            echo "project_type=python" >> $GITHUB_OUTPUT
+          elif [ -f "composer.json" ]; then
+            echo "project_type=php" >> $GITHUB_OUTPUT
+          elif [ -f "pom.xml" ] || [ -f "build.gradle" ] || [ -f "build.gradle.kts" ]; then
+            echo "project_type=java" >> $GITHUB_OUTPUT
+          else
+            echo "project_type=unknown" >> $GITHUB_OUTPUT
+          fi
+  
+  security_scan:
+    needs: determine-project-type
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
         with:
+          ref: ${{ github.event.inputs.branch || github.ref_name }}
+          fetch-depth: 0
+          submodules: recursive
+
+      # Node.js setup for Node projects
+      - name: Setup Node.js
+        if: needs.determine-project-type.outputs.project_type == 'node'
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      # Python setup for Python projects
+      - name: Setup Python
+        if: needs.determine-project-type.outputs.project_type == 'python'
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      # PHP setup for PHP projects
+      - name: Setup PHP
+        if: needs.determine-project-type.outputs.project_type == 'php'
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+
+        # Java setup for Java projects
+      - name: Setup Java
+        if: needs.determine-project-type.outputs.project_type == 'java'
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Java environment
+        if: needs.determine-project-type.outputs.project_type == 'java'
+        run: |
+          echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
+          echo "Current JAVA_HOME: $JAVA_HOME"
+          echo "Java version:"
+          java -version
+          echo "Maven version:"
+          mvn -version || true
+
+      - name: Install Snyk CLI
+        run: |
+          curl -Lo ./snyk https://static.snyk.io/cli/latest/snyk-linux
+          chmod +x ./snyk
+          sudo mv ./snyk /usr/local/bin/
+          snyk --version
+
+      - name: Set Maven Wrapper Permissions
+        if: needs.determine-project-type.outputs.project_type == 'java'
+        run: |
+          if [ -f "mvnw" ]; then
+            chmod +x mvnw
+            echo "Maven wrapper permissions updated"
+          fi
+          if [ -f "./mvnw" ]; then
+            chmod +x ./mvnw
+            echo "Maven wrapper permissions updated (relative path)"
+          fi
+
+      # Install dependencies based on project type
+      - name: Install dependencies (Node.js)
+        if: needs.determine-project-type.outputs.project_type == 'node'
+        run: |
+          if [ -f "package.json" ]; then
+            npm install
+          fi
+
+      - name: Install dependencies (Python)
+        if: needs.determine-project-type.outputs.project_type == 'python'
+        run: |
+          if [ -f "requirements.txt" ]; then
+            pip install -r requirements.txt
+          fi
+
+      - name: Install dependencies (PHP)
+        if: needs.determine-project-type.outputs.project_type == 'php'
+        run: |
+          if [ -f "composer.json" ]; then
+            composer install
+          fi
+
+      # Maven dependency installation
+      - name: Install dependencies (Maven)
+        if: >
+          needs.determine-project-type.outputs.project_type == 'java'
+        run: |
+          echo "Using JAVA_HOME: $JAVA_HOME"
+          ./mvnw dependency:resolve -X
+
+      # Run Snyk scan based on project type
+      - name: Run Snyk to check for vulnerabilities (Node.js)
+        if: needs.determine-project-type.outputs.project_type == 'node'
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: monitor
+          args: --all-projects
+
+      - name: Run Snyk to check for vulnerabilities (Python)
+        if: needs.determine-project-type.outputs.project_type == 'python'
+        uses: snyk/actions/python@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+          DEBUG: "*snyk*"
+          SNYK_DEBUG: "1"
+        with:
+          command: monitor
+          args: --all-projects --debug
+
+      - name: Run Snyk to check for vulnerabilities (PHP)
+        if: needs.determine-project-type.outputs.project_type == 'php'
+        uses: snyk/actions/php@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: monitor
+          args: --all-projects
+
+      # Snyk scan for Java projects
+      - name: Run Snyk to check for vulnerabilities (Java)
+        if: needs.determine-project-type.outputs.project_type == 'java'
+        run: |
+          echo "Running Snyk scan with Maven..."
+          export DEBUG=*snyk*
+          export SNYK_DEBUG=1
+
+          # Display build environment
+          echo "Build Environment:"
+          java -version
+          mvn -version
+
+          # Run Snyk test
+          snyk auth ${{ secrets.SNYK_TOKEN }}
+          snyk test \
+            --all-projects \
+            --debug \
+            --maven-aggregate-project \
+            --severity-threshold=high || true
+
+          # Run Snyk monitor
+          snyk monitor \
+            --all-projects \
+            --debug \
+            --maven-aggregate-project \
+            --severity-threshold=high
+
+      - name: Print Debug Information
+        if: always() && needs.determine-project-type.outputs.project_type == 'java'
+        run: |
+          echo "=== Environment Information ==="
+          echo "JAVA_HOME: $JAVA_HOME"
+          echo "PATH: $PATH"
+          echo "Working Directory:"
+          pwd
+          ls -la
+          echo "Maven Wrapper Version:"
+          ./mvnw -v
+          echo "Snyk Version:"
+          snyk --version
+          echo "=== Snyk Logs ==="
+          find ~ -name "*.log" -type f -exec cat {} \;
+
+  sonar_scan:
+    needs: security_scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.branch || github.event.inputs.branch || github.ref_name }}
           fetch-depth: 0
           submodules: recursive
       
       - name: Set up SonarQube Scanner
         uses: sonarsource/sonarqube-scan-action@master
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} 
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         with:
           projectBaseDir: .
           args: >
-            -Dsonar.projectKey=devops
+            -Dsonar.projectKey=${{ github.event.repository.name }}.${{ github.ref_name }}
             -Dsonar.sources=.
             -Dsonar.exclusions=**/*.java,**/node_modules/**,**/*.json
             -Dsonar.language=js,ts
@@ -51,6 +267,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
+          ref: ${{ inputs.branch || github.event.inputs.branch || github.ref_name }}
           fetch-depth: 0
           submodules: recursive
 
@@ -77,7 +294,7 @@ jobs:
             echo "ENVIRONMENT=staging" >> $GITHUB_ENV
           fi
           echo "COMMIT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
-      
+
       - name: Build and Push Docker Images
         run: |
           SERVICE_NAME="${REPO_NAME,,}"

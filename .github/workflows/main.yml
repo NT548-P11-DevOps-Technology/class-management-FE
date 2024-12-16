@@ -90,12 +90,9 @@ jobs:
       - name: Install dependencies (Python)
         if: needs.determine-project-type.outputs.project_type == 'python'
         run: |
-          if [ -f "Pipfile" ]; then
-            pip install pipenv
-            pipenv install --system --deploy
-          elif [ -f "requirements.txt" ]; then
-            pip install -r requirements.txt
-          fi
+          pip install --upgrade pip
+          pip install pipenv
+          pipenv install --system --verbose
 
       # PHP setup for PHP projects
       - name: Setup PHP

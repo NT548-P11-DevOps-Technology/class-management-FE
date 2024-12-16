@@ -36,7 +36,7 @@ on:
         required: true
       HARBOR_REGISTRY:
         required: true
-      SNYK_TOKEN: 
+      SNYK_TOKEN:
         required: true
 jobs:
   determine-project-type:
@@ -46,7 +46,7 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-        
+
       - name: Determine project type
         id: set-type
         run: |
@@ -79,7 +79,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-          
+
       # Python setup for Python projects
       - name: Setup Python
         if: needs.determine-project-type.outputs.project_type == 'python'
@@ -99,13 +99,6 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-          cache: maven
-          
-      - name: Set JAVA_HOME
-        if: needs.determine-project-type.outputs.project_type == 'java'
-        run: |
-          echo "JAVA_HOME=${JAVA_HOME}" >> $GITHUB_ENV
-          echo "${JAVA_HOME}/bin" >> $GITHUB_PATH
 
       - name: Detect Java Build Tool
         id: java-build-tool
@@ -118,7 +111,7 @@ jobs:
           else
             echo "build_tool=unknown" >> $GITHUB_OUTPUT
           fi
-  
+
       # Install dependencies based on project type
       - name: Install dependencies (Node.js)
         if: needs.determine-project-type.outputs.project_type == 'node'
@@ -126,14 +119,14 @@ jobs:
           if [ -f "package.json" ]; then
             npm install
           fi
-          
+
       - name: Install dependencies (Python)
         if: needs.determine-project-type.outputs.project_type == 'python'
         run: |
           if [ -f "requirements.txt" ]; then
             pip install -r requirements.txt
           fi
-          
+
       - name: Install dependencies (PHP)
         if: needs.determine-project-type.outputs.project_type == 'php'
         run: |
@@ -147,8 +140,8 @@ jobs:
           needs.determine-project-type.outputs.project_type == 'java' && 
           steps.java-build-tool.outputs.build_tool == 'maven'
         run: mvn dependency:resolve
-      
-      # Gradle dependency installation  
+
+      # Gradle dependency installation
       - name: Install dependencies (Gradle)
         if: >
           needs.determine-project-type.outputs.project_type == 'java' && 
@@ -159,10 +152,6 @@ jobs:
           else
             gradle dependencies
           fi
-      - name: Install Snyk CLI
-        if: needs.determine-project-type.outputs.project_type == 'java'
-        run: |
-          npm install -g snyk
 
       # Run Snyk scan based on project type
       - name: Run Snyk to check for vulnerabilities (Node.js)
@@ -182,7 +171,7 @@ jobs:
         with:
           command: monitor
           args: --all-projects
-          
+
       - name: Run Snyk to check for vulnerabilities (PHP)
         if: needs.determine-project-type.outputs.project_type == 'php'
         uses: snyk/actions/php@master
@@ -195,17 +184,14 @@ jobs:
       # Snyk scan for Java projects
       - name: Run Snyk to check for vulnerabilities (Java)
         if: needs.determine-project-type.outputs.project_type == 'java'
-        #uses: snyk/actions/maven@master
+        uses: snyk/actions/maven@master
         env:
           JAVA_HOME: ${{ env.JAVA_HOME }}
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        run: |
-          java -version
-          which java
-          echo $JAVA_HOME
-          snyk test --all-projects
-        continue-on-error: true
-          
+        with:
+          command: monitor
+          args: --all-projects --severity-threshold=high
+
   sonar_scan:
     needs: security_scan
     runs-on: ubuntu-latest
@@ -220,7 +206,7 @@ jobs:
       - name: Set up SonarQube Scanner
         uses: sonarsource/sonarqube-scan-action@master
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} 
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         with:
           projectBaseDir: .
@@ -265,7 +251,7 @@ jobs:
             echo "ENVIRONMENT=staging" >> $GITHUB_ENV
           fi
           echo "COMMIT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
-      
+
       - name: Build and Push Docker Images
         run: |
           SERVICE_NAME="${REPO_NAME,,}"

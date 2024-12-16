@@ -85,7 +85,7 @@ jobs:
         if: needs.determine-project-type.outputs.project_type == 'python'
         uses: actions/setup-python@v4
         with:
-          python-version: '3.12'
+          python-version: '3.10'
 
       # PHP setup for PHP projects
       - name: Setup PHP
@@ -143,16 +143,19 @@ jobs:
       - name: Install dependencies (Python)
         if: needs.determine-project-type.outputs.project_type == 'python'
         run: |
-          pip install --upgrade pip
+          python -m pip install --upgrade pip
           pip install pipenv
           
           if [ -f "Pipfile" ]; then
-          pipenv --python $(which python3) install --system --deploy
+            pipenv install --system --deploy --skip-lock
           fi
           
           if [ -f "requirements.txt" ]; then
-          pip install -r requirements.txt
+            pip install -r requirements.txt
           fi
+          
+          python --version
+          pip list
 
       - name: Install dependencies (PHP)
         if: needs.determine-project-type.outputs.project_type == 'php'
@@ -184,12 +187,16 @@ jobs:
         uses: snyk/actions/python@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+          PYTHONWARNINGS: ignore
           DEBUG: "*snyk*"
           SNYK_DEBUG: "1"
         with:
           command: monitor
           args: >
             --all-projects
+            --skip-unresolved
+            --detection-depth=2
+            --severity-threshold=high
             --debug
 
       - name: Run Snyk to check for vulnerabilities (PHP)

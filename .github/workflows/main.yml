@@ -159,6 +159,10 @@ jobs:
           else
             gradle dependencies
           fi
+      - name: Install Snyk CLI
+        if: needs.determine-project-type.outputs.project_type == 'java'
+        run: |
+          npm install -g snyk
 
       # Run Snyk scan based on project type
       - name: Run Snyk to check for vulnerabilities (Node.js)

@@ -85,7 +85,17 @@ jobs:
         if: needs.determine-project-type.outputs.project_type == 'python'
         uses: actions/setup-python@v4
         with:
-          python-version: '3.12'
+          python-version: '3.7'
+
+      - name: Install dependencies (Python)
+        if: needs.determine-project-type.outputs.project_type == 'python'
+        run: |
+          if [ -f "Pipfile" ]; then
+            pip install pipenv
+            pipenv install --system --deploy
+          elif [ -f "requirements.txt" ]; then
+            pip install -r requirements.txt
+          fi
 
       # PHP setup for PHP projects
       - name: Setup PHP
@@ -113,6 +123,7 @@ jobs:
           mvn -version || true
 
       - name: Install Snyk CLI
+        if: needs.determine-project-type.outputs.project_type == 'java'
         run: |
           curl -Lo ./snyk https://static.snyk.io/cli/latest/snyk-linux
           chmod +x ./snyk

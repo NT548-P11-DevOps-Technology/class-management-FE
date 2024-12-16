@@ -93,12 +93,26 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.1'
+
+        # Java setup for Java projects
       - name: Setup Java
         if: needs.determine-project-type.outputs.project_type == 'java'
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '17'
+
+      - name: Set Maven Wrapper Permissions
+        if: needs.determine-project-type.outputs.project_type == 'java'
+        run: |
+          if [ -f "mvnw" ]; then
+            chmod +x mvnw
+            echo "Maven wrapper permissions updated"
+          fi
+          if [ -f "./mvnw" ]; then
+            chmod +x ./mvnw
+            echo "Maven wrapper permissions updated (relative path)"
+          fi
 
       - name: Detect Java Build Tool
         id: java-build-tool
@@ -139,7 +153,19 @@ jobs:
         if: >
           needs.determine-project-type.outputs.project_type == 'java' && 
           steps.java-build-tool.outputs.build_tool == 'maven'
-        run: mvn dependency:resolve
+        run: |
+          # Print current directory and list files
+          pwd
+          ls -la
+          
+          # Try using mvnw if it exists, otherwise use mvn
+          if [ -f "./mvnw" ]; then
+            echo "Using Maven Wrapper"
+            ./mvnw dependency:resolve -X
+          else
+            echo "Using Global Maven"
+            mvn dependency:resolve -X
+          fi
 
       # Gradle dependency installation
       - name: Install dependencies (Gradle)
